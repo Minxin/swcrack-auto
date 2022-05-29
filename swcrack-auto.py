@@ -1,6 +1,6 @@
 
 # -*- coding: utf-8 -*-
-# @Time : 2022/05/24
+# @Time : 2022/05/29
 # @Author : fancy
 # @Instructions : 速蛙云（https://i.sw12.icu/hDR1）机场限时优惠抢购脚步，功能包括爆破滑块验证登录、定时抢购。滑块多次失败后可能报错退出，但不会限制登录，可以重复尝试。
 
@@ -13,11 +13,12 @@ import threading
 import base64
 import numpy as np
 import cv2 as cv
+import sys 
 
 
 
-name="youremail"
-password="yourpasswd"
+# name="youremail"
+# password="yourpasswd"
 
 
 
@@ -78,7 +79,10 @@ def getx(contours):
 
 
 
-captcha_head={
+
+
+def check():
+    captcha_head={
     "accept": "application/json, text/plain, */*",
     "accept-encoding": "gzip, deflate, br",
     "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
@@ -91,7 +95,6 @@ captcha_head={
     "user-agent": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Mobile Safari/537.36 Edg/86.0.622.69"
     }
 
-def check():
     captcha_response=requests.get(captcha_url,headers=captcha_head)
     captcha_json=json.loads(captcha_response.content.decode('utf-8'))
     data_json=captcha_json["data"]
@@ -168,130 +171,141 @@ def check():
 # 
 
 
-
-n=None
-token=None
-while n==None:
-    n,token=check()
-
-
-check_data={
-    "email":name,
-    "n":n,
-    "passwd":password,
-    "token":token
-}
-print(check_data)
-
-head={
-    "accept": "application/json, text/plain, */*",
-    "accept-encoding": "gzip, deflate, br",
-    "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-    "content-type": "application/json",
-    "cookie": "_ga=GA1.1.735359788.1653383307; _gcl_au=1.1.1811677344.1653383307; _ga_TVRF6RYBHW=GS1.1.1653383298.1.1.1653383307.0",
-    "origin": "https://m.ok8.icuu",
-    "referer": "https://m.ok8.icu/m/check",
-    "sec-fetch-dest": "empty",
-    "sec-fetch-mode": "cors",
-    "sec-fetch-site": "same-origin",
-    "user-agent": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Mobile Safari/537.36 Edg/86.0.622.69"
-}
-check_response=requests.post(check_url,json=check_data,headers=head)
-check_result=json.loads(check_response.content.decode('utf-8'))
-print(check_result)
-if(check_result["code"]!=100):
-    print("fail")
-else:
-    token=check_result["data"]["token"]
-    print(token)
+def get_check_token(name,password):
+    n=None
+    token=None
+    while n==None:
+        n,token=check()
 
 
+    check_data={
+        "email":name,
+        "n":n,
+        "passwd":password,
+        "token":token
+    }
+    print(check_data)
+
+    head={
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br",
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "content-type": "application/json",
+        "cookie": "_ga=GA1.1.735359788.1653383307; _gcl_au=1.1.1811677344.1653383307; _ga_TVRF6RYBHW=GS1.1.1653383298.1.1.1653383307.0",
+        "origin": "https://m.ok8.icuu",
+        "referer": "https://m.ok8.icu/m/check",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Mobile Safari/537.36 Edg/86.0.622.69"
+    }
+    check_response=requests.post(check_url,json=check_data,headers=head)
+    check_result=json.loads(check_response.content.decode('utf-8'))
+    print(check_result)
+    if(check_result["code"]!=100):
+        print("fail")
+    else:
+        token=check_result["data"]["token"]
+        print(token)
+    return token
 
 
 
-#------------------------------login----------------------------
-login_data={
-    "email":name,
-    "passwd":password,
-    "token":token
-}
 
-login_head={
-    "accept": "application/json, text/plain, */*",
-    "accept-encoding": "gzip, deflate, br",
-    "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-    "content-type": "application/json",
-    "cookie": "_ga=GA1.1.735359788.1653383307; _gcl_au=1.1.1811677344.1653383307; _ga_TVRF6RYBHW=GS1.1.1653383298.1.1.1653383307.0",
-    "origin": "https://m.ok8.icu",
-    "referer": "https://m.ok8.icu/m/login",
-    "sec-fetch-dest": "empty",
-    "sec-fetch-mode": "cors",
-    "sec-fetch-site": "same-origin",
-    "user-agent": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Mobile Safari/537.36 Edg/86.0.622.69"
-}
 
-login_response=requests.post(login_url,json=login_data,headers=login_head)
-login_result=json.loads(login_response.content.decode('utf-8'))
-print(login_result)
-if login_result["code"]==100:
-    print("login success!")
-else:
-    print("login fail!")
-print(login_response.headers)
-authorizationmweb=login_response.headers["mweb-auth-token"]
-Cookie=login_response.headers["Set-Cookie"]
+def do_login(name,password,token):
+    #------------------------------login----------------------------
+    login_data={
+        "email":name,
+        "passwd":password,
+        "token":token
+    }
 
-buy_headers={
-    "accept": "application/json, text/plain, */*",
-    "accept-encoding": "gzip, deflate, br",
-    "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-    "authorizationmweb": authorizationmweb,
-    "content-type": "application/json",
-    "cookie": Cookie,
-    "origin": "https://m.ok8.icu",
-    "referer": "https://m.ok8.icu/m/shop",
-    "sec-fetch-dest": "empty",
-    "sec-fetch-mode": "cors",
-    "sec-fetch-site": "same-origin",
-    "user-agent": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Mobile Safari/537.36 Edg/86.0.622.69"
-}
+    login_head={
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br",
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "content-type": "application/json",
+        "cookie": "_ga=GA1.1.735359788.1653383307; _gcl_au=1.1.1811677344.1653383307; _ga_TVRF6RYBHW=GS1.1.1653383298.1.1.1653383307.0",
+        "origin": "https://m.ok8.icu",
+        "referer": "https://m.ok8.icu/m/login",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Mobile Safari/537.36 Edg/86.0.622.69"
+    }
 
-list_response=requests.get(list_url,headers=buy_headers)
-list_json=json.loads(list_response.content.decode('utf-8'))
-id_to_buy=0
+    login_response=requests.post(login_url,json=login_data,headers=login_head)
+    login_result=json.loads(login_response.content.decode('utf-8'))
+    print(login_result)
+    if login_result["code"]==100:
+        print("login success!")
+    else:
+        print("login fail!")
+    print(login_response.headers)
+    authorizationmweb=login_response.headers["mweb-auth-token"]
+    Cookie=login_response.headers["Set-Cookie"]
 
-if list_json["code"]==100:
-    goods=list_json["data"]
-    mygoods={}
-    for good in goods:
-        print(good["id"],good["name"])
-        mygoods[good["id"]]=good["name"]
-    print(mygoods)
-    id=input("choose which you buy?\n")
-    print("you choose this ",mygoods[int(id)])
-    id_to_buy=int(id)
-    
+    buy_headers={
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br",
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "authorizationmweb": authorizationmweb,
+        "content-type": "application/json",
+        "cookie": Cookie,
+        "origin": "https://m.ok8.icu",
+        "referer": "https://m.ok8.icu/m/shop",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Mobile Safari/537.36 Edg/86.0.622.69"
+    }
 
-#------------------------------time task for buying----------------------------
-data={"coupon": "限时折扣", "id": id_to_buy, "upgrade":False}
-def swtest():
+    list_response=requests.get(list_url,headers=buy_headers)
+    list_json=json.loads(list_response.content.decode('utf-8'))
+    id_to_buy=0
+
+    if list_json["code"]==100:
+        goods=list_json["data"]
+        mygoods={}
+        for good in goods:
+            print(good["id"],good["name"])
+            mygoods[good["id"]]=good["name"]
+        print(mygoods)
+        id=input("choose which you buy?\n")
+        print("you choose this ",mygoods[int(id)])
+        id_to_buy=int(id)
+        
+
+    #------------------------------time task for buying----------------------------
+    data={"coupon": "限时折扣", "id": id_to_buy, "upgrade":False}
+    def swtest():
+        while True:
+            coupon_response=requests.put(buy_url, json=data, headers=buy_headers)
+            print(coupon_response.content)
+            coupon_json=json.loads(coupon_response.content.decode('utf-8'))
+            message=coupon_json["message"]
+            print(message)
+
+
+    def run_threaded(job_func):
+        job_thread = threading.Thread(target=job_func)
+        job_thread.start()
+
+    buytime=input("set the time to buy (format is 12:23:34):\n")
+    schedule.every().day.at(buytime).do(run_threaded,swtest)
+    schedule.every().day.at(buytime).do(run_threaded,swtest)
+    schedule.every().day.at(buytime).do(run_threaded,swtest)
+    schedule.every().day.at(buytime).do(run_threaded,swtest)
     while True:
-        coupon_response=requests.put(buy_url, json=data, headers=buy_headers)
-        print(coupon_response.content)
-        coupon_json=json.loads(coupon_response.content.decode('utf-8'))
-        message=coupon_json["message"]
-        print(message)
+        schedule.run_pending()   # 运行所有可以运行的任务
+        time.sleep(1)
 
 
-def run_threaded(job_func):
-     job_thread = threading.Thread(target=job_func)
-     job_thread.start()
-
-buytime=input("set the time to buy (format is 12:23:34):\n")
-schedule.every().day.at(buytime).do(run_threaded,swtest)
-schedule.every().day.at(buytime).do(run_threaded,swtest)
-schedule.every().day.at(buytime).do(run_threaded,swtest)
-schedule.every().day.at(buytime).do(run_threaded,swtest)
-while True:
-    schedule.run_pending()   # 运行所有可以运行的任务
-    time.sleep(1)
+if __name__=="__main__":
+    if len(sys.argv)!=3:
+        print("should input like: pyhon swcrack-auto.py name password")
+        quit()
+    name,passwod=sys.argv[1:]
+    token=get_check_token(name,passwod)
+    do_login(name,passwod,token)
